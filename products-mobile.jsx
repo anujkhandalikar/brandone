@@ -1,4 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
+
+// Mokobara Logo Component
+const MokobaraLogo = () => (
+  <img
+    src="https://mokobara.com/cdn/shop/files/Mokobara-logo-R.png?v=1693389220&width=1920"
+    alt="Mokobara"
+    className="h-[76px] w-auto"
+  />
+);
 
 const products = [
   {
@@ -100,8 +109,6 @@ const MobileProductViewer = () => {
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
         handleNext();
-      } else {
-        handlePrev();
       }
     }
   };
@@ -113,17 +120,6 @@ const MobileProductViewer = () => {
     setImageLoading(true);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % products.length);
-      setIsAnimating(false);
-    }, 300);
-  };
-
-  const handlePrev = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setImageError(false);
-    setImageLoading(true);
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
       setIsAnimating(false);
     }, 300);
   };
@@ -140,19 +136,12 @@ const MobileProductViewer = () => {
     handleNext();
   };
 
-  const handlePrevWithHaptic = () => {
-    triggerHaptic();
-    handlePrev();
-  };
-
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] font-sans flex flex-col overflow-hidden">
 
-      {/* Logo Header - Minimal */}
+      {/* Logo Header */}
       <header className="flex-shrink-0 py-6 flex justify-center items-center border-b border-gray-100">
-        <h1 className="text-lg font-bold tracking-[0.35em] uppercase italic">
-          MOKOBARA
-        </h1>
+        <MokobaraLogo />
       </header>
 
       {/* Main Content */}
@@ -163,7 +152,7 @@ const MobileProductViewer = () => {
       >
 
         {/* Image Container - Responsive Height */}
-        <div className={`flex-shrink-0 h-[400px] sm:h-[512px] relative bg-[#F9F9F9] overflow-hidden transition-opacity duration-300 ${
+        <div className={`flex-shrink-0 h-[480px] sm:h-96 relative bg-[#F9F9F9] overflow-hidden transition-opacity duration-300 ${
           isAnimating ? 'opacity-70' : 'opacity-100'
         }`}>
           {imageError ? (
@@ -197,44 +186,25 @@ const MobileProductViewer = () => {
           isAnimating ? 'opacity-0' : 'opacity-100'
         }`}>
 
-          {/* Progress Dots */}
-          <div className="flex justify-center gap-1.5 pt-3 flex-shrink-0">
-            {products.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  triggerHaptic();
-                  setCurrentIndex(idx);
-                  setImageError(false);
-                  setImageLoading(true);
-                }}
-                className={`h-1.5 rounded-full transition-all ${
-                  idx === currentIndex
-                    ? 'bg-[#1A1A1A] w-6'
-                    : 'bg-gray-200 w-1.5'
-                }`}
-                aria-label={`Go to product ${idx + 1}`}
-              />
-            ))}
-          </div>
-
-          {/* Product Info - Scrollable */}
-          <div className="px-5 py-3 space-y-2 overflow-y-auto">
+          {/* Product Info */}
+          <div className="px-6 py-2 space-y-2 overflow-y-auto">
             <h2 className="text-base font-light tracking-tight text-gray-800">
               {currentProduct.name}
             </h2>
 
-            <p className="text-xs font-bold text-gray-900 italic leading-snug">
-              "{currentProduct.tagline}"
-            </p>
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-900 italic leading-snug">
+                "{currentProduct.tagline}"
+              </p>
 
-            <p className="text-xs text-gray-500 leading-relaxed">
-              {currentProduct.utility}
-            </p>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {currentProduct.utility}
+              </p>
+            </div>
           </div>
 
           {/* Controls - Sticky at bottom */}
-          <div className="px-5 pb-5 space-y-2 flex-shrink-0 bg-[#FDFDFD] border-t border-gray-50">
+          <div className="px-6 pb-4 space-y-2 flex-shrink-0 bg-[#FDFDFD] border-t border-gray-50">
             <button
               className="w-full bg-[#1A1A1A] text-white py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:scale-[0.97] transition-all touch-manipulation"
               onClick={handleNextWithHaptic}
@@ -242,25 +212,12 @@ const MobileProductViewer = () => {
               Get Now
             </button>
 
-            {/* Navigation Buttons */}
-            <div className="flex gap-2">
-              <button
-                onClick={handlePrevWithHaptic}
-                className="flex-1 bg-white text-[#1A1A1A] border border-gray-200 py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:bg-gray-50 active:scale-[0.97] transition-all touch-manipulation"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={handleNextWithHaptic}
-                className="flex-1 bg-white text-[#1A1A1A] border border-gray-200 py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:bg-gray-50 active:scale-[0.97] transition-all touch-manipulation"
-              >
-                Next →
-              </button>
-            </div>
-
-            <p className="text-center text-[10px] text-gray-400 tracking-wider">
-              {currentIndex + 1} of {products.length} • Swipe to browse
-            </p>
+            <button
+              onClick={handleNextWithHaptic}
+              className="w-full bg-white text-[#1A1A1A] border border-gray-200 py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:bg-gray-50 active:scale-[0.97] transition-all touch-manipulation"
+            >
+              Another One
+            </button>
           </div>
         </div>
 
