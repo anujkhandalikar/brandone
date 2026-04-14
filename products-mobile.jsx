@@ -1,83 +1,65 @@
-import React, { useState, useRef } from 'react';
-
-// Mokobara Logo Component
-const MokobaraLogo = () => (
-  <img
-    src="https://mokobara.com/cdn/shop/files/Mokobara-logo-R.png?v=1693389220&width=1920"
-    alt="Mokobara"
-    className="h-[76px] w-auto"
-  />
-);
+import React, { useState, useRef, useEffect } from 'react';
+import { Bookmark, ShoppingBag, ArrowRight, Info } from 'lucide-react';
 
 const products = [
   {
     id: 1,
     name: "The Cabin Pro",
     tagline: "The ultimate breeze-through-security companion.",
-    utility: "A dedicated hard-shell front compartment for instant tech access and built-in charging.",
     image: "https://mokobara.com/cdn/shop/files/The-Cabin-Pro_2.0-1_188d0582-f9ff-45de-a9b7-508a4d4335d6.jpg?width=1200",
   },
   {
     id: 2,
     name: "The Transit Backpack",
     tagline: "Designed for humans who move.",
-    utility: "180° clamshell opening that makes airport security a total non-event.",
     image: "https://mokobara.com/cdn/shop/files/TheTransitBackpack30L_CryptoSunray1_baac0fd7-c46e-462a-a914-cdc2813befa2.webp?width=1200",
   },
   {
     id: 3,
     name: "The Overnighter",
     tagline: "Packs like a suitcase, carries like a backpack.",
-    utility: "Featuring a detachable sling bag for quick, hands-free exploring once you arrive.",
     image: "https://mokobara.com/cdn/shop/files/TheOvernighterBackpack-01.jpg?width=1200",
   },
   {
     id: 4,
     name: "The Aisle Trunk",
     tagline: "Maximum volume, minimal stress.",
-    utility: "A unique 70/30 split design that provides extra depth for your bulkier travel essentials.",
     image: "https://mokobara.com/cdn/shop/files/The-Aisle-Trunk_Check-in_Shy-Blue-1.jpg?width=1200",
   },
   {
     id: 5,
     name: "The Daily Backpack",
     tagline: "Your daily ritual, elevated.",
-    utility: "Body-blended magnetic pocket ensures your passport and phone are always secure.",
     image: "https://mokobara.com/cdn/shop/products/The-Backpack_DD-1-New.webp?width=1200",
   },
   {
     id: 6,
     name: "The Check-in Luggage",
     tagline: "Indestructible. Lightweight. Silent.",
-    utility: "Equipped with Japanese Hinomoto wheels that glide silently across any airport surface.",
     image: "https://mokobara.com/cdn/shop/files/The-Check-in-Luggage-1_1_ad726d9d-5c1b-4df0-9a85-1ce67bb67205.jpg?width=1200",
   },
   {
     id: 7,
     name: "The Weekender",
     tagline: "Short trips, big style.",
-    utility: "A separate ventilated shoe compartment keeps your fresh laundry truly fresh.",
     image: "https://mokobara.com/cdn/shop/files/Bootcamp-Ocean-1.jpg?width=1200",
   },
   {
     id: 8,
     name: "The Briefcase",
     tagline: "The modern professional's power move.",
-    utility: "Slim, structured profile with intelligent organization for all your tech and chargers.",
     image: "https://mokobara.com/cdn/shop/products/The-Briefcase_EY-1.jpg?width=1200",
   },
   {
     id: 9,
     name: "The Work Backpack",
     tagline: "Sophistication meets functionality.",
-    utility: "Crafted with water-resistant nylon and vegan leather for a durable, premium finish.",
     image: "https://mokobara.com/cdn/shop/files/The-Work-Backpack_2.0-Crypto-1_bb460c16-5301-4814-aed4-5f6ddfeae11b.jpg?width=1200",
   },
   {
     id: 10,
     name: "The Daily Tote",
     tagline: "Everything you need, in one place.",
-    utility: "Features a reinforced structure and a padded sleeve for your 14-inch laptop.",
     image: "https://mokobara.com/cdn/shop/files/The-Easy-Going-Tote-Coconut-Cream-1_9336e443-6f6a-4b58-9ea9-e4ac114806a7.jpg?width=1200",
   }
 ];
@@ -85,12 +67,28 @@ const products = [
 const MobileProductViewer = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [bookmarked, setBookmarked] = useState(new Set());
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
   const currentProduct = products[currentIndex];
+
+  // Load bookmarks from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('mokobara-bookmarks');
+    if (saved) {
+      try {
+        setBookmarked(new Set(JSON.parse(saved)));
+      } catch (e) {
+        console.error('Failed to load bookmarks:', e);
+      }
+    }
+  }, []);
+
+  // Save bookmarks to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('mokobara-bookmarks', JSON.stringify(Array.from(bookmarked)));
+  }, [bookmarked]);
 
   // Swipe handlers
   const handleTouchStart = (e) => {
@@ -108,120 +106,119 @@ const MobileProductViewer = () => {
 
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
-        handleNext();
+        handleShuffle();
       }
     }
   };
 
-  const handleNext = () => {
+  const handleShuffle = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setImageError(false);
-    setImageLoading(true);
+
     setTimeout(() => {
       setCurrentIndex((prev) => (prev + 1) % products.length);
       setIsAnimating(false);
     }, 300);
   };
 
-  // Haptic feedback
+  const toggleBookmark = (id) => {
+    const newBookmarks = new Set(bookmarked);
+    if (newBookmarks.has(id)) {
+      newBookmarks.delete(id);
+    } else {
+      newBookmarks.add(id);
+    }
+    setBookmarked(newBookmarks);
+  };
+
   const triggerHaptic = () => {
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
   };
 
-  const handleNextWithHaptic = () => {
-    triggerHaptic();
-    handleNext();
-  };
-
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-[#1A1A1A] font-sans flex flex-col overflow-hidden">
+    <div className="w-full h-screen bg-black font-sans relative overflow-hidden">
+      {/* Screen */}
 
-      {/* Logo Header */}
-      <header className="flex-shrink-0 py-6 flex justify-center items-center border-b border-gray-100">
-        <MokobaraLogo />
-      </header>
+        {/* Full Bleed Image Container */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <div
+            className={`w-full h-full transition-all duration-300 ease-in-out transform ${
+              isAnimating ? 'scale-110 blur-sm opacity-40' : 'scale-100 blur-0 opacity-100'
+            }`}
+          >
+            <img
+              src={currentProduct.image}
+              alt={currentProduct.name}
+              className="w-full h-full object-cover"
+            />
+            {/* Vignetting */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+          </div>
+        </div>
 
-      {/* Main Content */}
-      <main
-        className="flex-1 w-full flex flex-col overflow-hidden"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+        {/* Top UI Overlay */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
+          <img
+            src="https://mokobara.com/cdn/shop/files/Mokobara-logo-R.png?v=1693389220&width=1920"
+            alt="Mokobara"
+            className="h-16 sm:h-28 w-auto"
+          />
+        </div>
 
-        {/* Image Container - Responsive Height */}
-        <div className={`flex-shrink-0 h-[480px] sm:h-96 relative bg-[#F9F9F9] overflow-hidden transition-opacity duration-300 ${
-          isAnimating ? 'opacity-70' : 'opacity-100'
+        {/* Compact Bottom UI HUD */}
+        <div className={`absolute bottom-0 left-0 w-full px-2.5 py-2.5 sm:px-5 sm:py-3 pb-16 sm:pb-20 transition-all duration-300 ${
+          isAnimating ? 'translate-y-3 opacity-0' : 'translate-y-0 opacity-100'
         }`}>
-          {imageError ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-gray-300 text-xs font-bold tracking-widest uppercase text-center">
-                {currentProduct.name}<br />
-                <span className="text-[10px] opacity-50">Image Preview</span>
-              </div>
+
+          {/* Product Glance Info */}
+          <div className="mb-6 sm:mb-8 flex justify-between items-start gap-2">
+            <div className="flex-1">
+              <h2 className="text-white text-lg sm:text-2xl font-bold tracking-tight mb-1 leading-tight">
+                {currentProduct.name}
+              </h2>
+              <p className="text-white/70 text-sm sm:text-base font-medium italic leading-tight">
+                {currentProduct.tagline}
+              </p>
             </div>
-          ) : (
-            <>
-              <img
-                src={currentProduct.image}
-                alt={currentProduct.name}
-                className={`w-full h-full object-cover transition-all duration-300 ${
-                  isAnimating ? 'scale-95' : 'scale-100'
-                }`}
-                loading="lazy"
-                onError={() => setImageError(true)}
-                onLoad={() => setImageLoading(false)}
+            <button
+              onClick={() => {
+                triggerHaptic();
+                toggleBookmark(currentProduct.id);
+              }}
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center border border-white/10 transition-transform active:scale-75 flex-shrink-0"
+            >
+              <Bookmark
+                className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors ${bookmarked.has(currentProduct.id) ? 'fill-white text-white' : 'text-white/60'}`}
               />
-              {imageLoading && (
-                <div className="absolute inset-0 bg-gray-100 animate-pulse" />
-              )}
-            </>
-          )}
-        </div>
+            </button>
+          </div>
 
-        {/* Bottom Info Card - Scrollable */}
-        <div className={`flex-1 flex flex-col overflow-y-auto bg-[#FDFDFD] border-t border-gray-100 transition-all duration-300 ${
-          isAnimating ? 'opacity-0' : 'opacity-100'
-        }`}>
+          {/* Actions - Grouped and Compact */}
+          <div className="flex flex-col gap-1 sm:gap-1.5">
+            <button
+              onClick={() => {
+                triggerHaptic();
+                handleShuffle();
+              }}
+              className="w-full bg-white text-black h-10 sm:h-12 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 active:bg-zinc-200 shadow-lg"
+            >
+              ANOTHER ONE
+              <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+            </button>
 
-          {/* Product Info */}
-          <div className="px-6 py-2 space-y-2 overflow-y-auto">
-            <h2 className="text-base font-light tracking-tight text-gray-800">
-              {currentProduct.name}
-            </h2>
-
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-gray-900 italic leading-snug">
-                "{currentProduct.tagline}"
-              </p>
-
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {currentProduct.utility}
-              </p>
+            <div className="flex gap-1 sm:gap-1.5">
+              <button className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 text-white h-10 sm:h-12 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors active:bg-white/20">
+                GET NOW
+                <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              </button>
+              <button className="w-10 sm:w-12 bg-white/10 backdrop-blur-md border border-white/20 text-white h-10 sm:h-12 rounded-lg flex items-center justify-center active:bg-white/20">
+                <Info className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-60" />
+              </button>
             </div>
           </div>
-
-          {/* Controls - Sticky at bottom */}
-          <div className="px-6 pb-4 space-y-2 flex-shrink-0 bg-[#FDFDFD] border-t border-gray-50">
-            <button
-              className="w-full bg-[#1A1A1A] text-white py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:scale-[0.97] transition-all touch-manipulation"
-              onClick={handleNextWithHaptic}
-            >
-              Get Now
-            </button>
-
-            <button
-              onClick={handleNextWithHaptic}
-              className="w-full bg-white text-[#1A1A1A] border border-gray-200 py-3 rounded-full text-[10px] font-bold tracking-[0.25em] uppercase active:bg-gray-50 active:scale-[0.97] transition-all touch-manipulation"
-            >
-              Another One
-            </button>
-          </div>
         </div>
-
-      </main>
     </div>
   );
 };
